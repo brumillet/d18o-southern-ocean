@@ -170,8 +170,13 @@ class TracerOptimizer:
         """
         print(f"Preparing tracer data from {tracer_file}...")
         
-        # Load tracer data
-        tracer_data = pd.read_table(self.data_path + tracer_file)
+        # Load tracer data - handle both CSV and table formats
+        if tracer_file.endswith('.csv'):
+            tracer_data = pd.read_csv(self.data_path + tracer_file)
+        elif tracer_file.endswith('.txt'):
+            tracer_data = pd.read_table(self.data_path + tracer_file)
+        else:
+            raise ValueError("Unsupported file format. Please provide a .csv or .txt file.")
         
         # Convert longitude to 0-360 format
         tracer_data['Longitude'] = [lon if lon >= 0 else 360 + lon for lon in tracer_data['Longitude']]
