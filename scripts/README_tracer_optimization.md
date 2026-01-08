@@ -278,3 +278,9 @@ python example_usage.py
 ### Getting Help
 
 Check the example scripts for usage patterns, or examine the original notebook for parameter values and expected behavior.
+
+
+# To do
+
+- Remove dsClim from the TracerOptimizer Class: not needed anymore.
+- Remove gamma and salinity interpolator (climatology interpolators)
