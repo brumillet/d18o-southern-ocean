@@ -22,9 +22,9 @@ models = ['TMI', 'OCIM', 'NEMO']
 
 # Important information about the different datasets
 coords_dataset = [(-40, -38), (-40, -55), (-60, -52), (-60, -78), (-40, -72), (0, -50), (20, -50), (35, -40), (50, -38), (50, -57), (80, -58), (-170, -50)]
-l_neut_dens = [27.96, 28.01, 27.93, 28.18,
+l_neut_dens = [27.98, 28.01, 27.98, 28.18,
               28.14, 28.03, 28.07, 28.02,
-              28.03, 28.05, 28.07, 27.99]
+              28.05, 28.05, 28.07, 27.99]
 l_index = [0, 3, 4, 5, 7, 9, 10]
 l_names_accepted = ['WOCE A11 (Meredith et al 1999)', 'GEOSECS Ostlund et al (1987)', "Drake's Passage (Meredith et al 1999)", 'Weppernig et al (1996)', 
                 'Mackensen et al (1996)', 'Mackensen et al (1996)', 'ADOX1 (Frew et al 1995)', 'SWINDEX (K.J. Heywood pers. communication)', 
