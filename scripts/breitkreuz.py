@@ -37,8 +37,8 @@ BREITKREUZ_DEPTH_MIN = 25.0
 BREITKREUZ_DEPTH_MAX = 4855.0
 
 
-def load_breitkreuz(nc_path, month=None, pad_vertical=True, pad_cyclic=True,
-                    depth_bottom=6000.0, variables=('D18O', 'SALT', 'THETA')):
+def load_breitkreuz(nc_path, month=None, pad_surface=True, pad_cyclic=True,
+                    depth_bottom=None, variables=('D18O', 'SALT', 'THETA')):
     """
     Load the Breitkreuz et al. (2018) product on its regular 1 deg lat-lon grid.
 
@@ -49,17 +49,18 @@ def load_breitkreuz(nc_path, month=None, pad_vertical=True, pad_cyclic=True,
     month : int or None, optional
         1-12 to extract a single calendar month, or None (default) for the
         annual mean. 
-    pad_vertical : bool, optional
-        If True (default), extend the vertical axis by repeating the top and
-        bottom levels at depth 0 and at ``depth_bottom``. Defined to avoid having
-        Nan values above 25m and below 4855m in the interpolated field.
+    pad_surface : bool, optional
+        If True (default), repeat the shallowest level at depth 0.
     pad_cyclic : bool, optional
         If True (default), wrap one column around each side in longitude
         (359.5 -> -0.5 and 0.5 -> 360.5) so that points falling between the
         last and first grid column are interpolated rather than returned as
         NaN.
-    depth_bottom : float, optional
-        Depth of the added bottom level when ``pad_vertical`` is True.
+    depth_bottom : float or None, optional
+        If a depth is given, repeat the deepest level down to it, so that
+        samples below the last cell centre (4855 m) get the bottom value
+        instead of NaN. ``None`` (default) adds no bottom level, leaving
+        everything below 4855 m undefined.
     variables : tuple of str, optional
         Which raw fields to load. ``'D18O'`` -> ``d18o``, ``'SALT'`` ->
         ``salinity``, ``'THETA'`` -> ``theta``.
@@ -118,13 +119,19 @@ def load_breitkreuz(nc_path, month=None, pad_vertical=True, pad_cyclic=True,
         depth = depth[d_order]
         fields = {k: v[d_order] for k, v in fields.items()}
 
-    if pad_vertical:
+    # The two directions are independent: holding the 25 m value up to the
+    # surface is reasonable, extending the 4855 m value into the abyss is not,
+    # so the latter only happens when a depth is asked for explicitly.
+    if pad_surface:
+        depth = np.concatenate(([0.0], depth))
+        fields = {k: np.concatenate((v[:1], v), axis=0) for k, v in fields.items()}
+
+    if depth_bottom is not None:
         if depth_bottom <= depth[-1]:
             raise ValueError(f'depth_bottom ({depth_bottom}) must be deeper than '
                              f'the last model level ({depth[-1]})')
-        depth = np.concatenate(([0.0], depth, [depth_bottom]))
-        fields = {k: np.concatenate((v[:1], v, v[-1:]), axis=0)
-                  for k, v in fields.items()}
+        depth = np.concatenate((depth, [depth_bottom]))
+        fields = {k: np.concatenate((v, v[-1:]), axis=0) for k, v in fields.items()}
 
     if pad_cyclic:
         lon = np.concatenate((lon[-1:] - 360.0, lon, lon[:1] + 360.0))
@@ -144,8 +151,9 @@ def load_breitkreuz(nc_path, month=None, pad_vertical=True, pad_cyclic=True,
         'source': 'Breitkreuz et al. (2018), PANGAEA 10.1594/PANGAEA.889922',
         'grid': '1 deg lat-lon (interpolated from the native cubed-sphere grid)',
         'month': 'annual mean' if month is None else f'month {month}',
-        'pad_vertical': str(pad_vertical),
+        'pad_surface': str(pad_surface),
         'pad_cyclic': str(pad_cyclic),
+        'depth_bottom': 'none' if depth_bottom is None else str(depth_bottom),
     }
     return ds
 
