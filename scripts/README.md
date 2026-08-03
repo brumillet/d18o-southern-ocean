@@ -36,19 +36,3 @@ A point outside a product's grid, or on one of its land cells, comes back as
 NaN. A `dropna()` over a frame carrying several products therefore reduces it to
 the observations *every* product covers, which is what makes their RMSE
 comparable — but it does discard points, so it is worth printing the count.
-
-## Tests
-
-Neither script needs a notebook:
-
-```bash
-python scripts/test_modules.py D:/Data/d18o_so/
-```
-
-```bash
-python scripts/test_breitkreuz.py D:/Data/d18o_so/D18O_Breitkreuz_et_al_2018.nc
-```
-
-`test_modules.py` skips the checks that need the Breitkreuz file if it is not
-there, and runs the rest against synthetic fields. Both exit non-zero on
-failure.
