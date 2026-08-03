@@ -2,12 +2,6 @@
 """
 Paths and file names, in one place.
 
-The notebooks used to open each file with a hard-coded name spelled out at the
-call site, several of them more than once. Collecting the names here means a
-renamed or moved file is a one-line change, and that a missing file produces a
-clear error naming the variable to set rather than a bare FileNotFoundError
-somewhere in the middle of a notebook.
-
 The data directory is machine-specific. Set it either through the
 ``D18O_DATA_PATH`` environment variable or, from a notebook, with::
 
