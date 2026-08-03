@@ -6,10 +6,29 @@ This GitHub repository contains 3 different notebooks:
 
 - optimization_fractions: The notebook where we compute the different d18o products and surface values based on the model fractions.
 
-- evaluation_reconstructions: Notebook used to compare the different reconstructions and to compare our results to other studies.
+- evaluation_reconstructions: Notebook used to compare the different reconstructions and to compare our results to other studies. It also compares them to the Breitkreuz et al. (2018) product (see below), both against the observations and directly product to product in the Southern Ocean.
 
 
 The data used in this study can be downloaded at: (add repository). To run the code, modify the data_path var for your own.
+
+
+The Breitkreuz et al. (2018) product
+------------------------------------
+
+Breitkreuz, C., Paul, A., Kurahashi-Nakamura, T., Losch, M., Schulz, M. (2018): A dynamical
+reconstruction of the global monthly-mean oxygen isotopic composition of seawater. JGR Oceans,
+123(10), 7206-7219. https://doi.org/10.1029/2018JC014300
+
+It is a d18Osw product obtained by assimilating the global d18Osw compilation and climatological
+T/S into an ocean general circulation model with the adjoint method, so it is independent both of
+the LeGrande & Schmidt climatology and of the water-mass-fraction reconstructions computed here.
+
+Download D18O_Breitkreuz_et_al_2018.nc (~300 MB) from https://doi.org/10.1594/PANGAEA.889922 and
+place it in data_path. scripts/breitkreuz.py loads it and normalises it to this project's
+conventions (longitude 0-360, depth positive downwards, annual mean by default); see its docstring
+for the padding options. Check the download with:
+
+    python scripts/test_breitkreuz.py <path to D18O_Breitkreuz_et_al_2018.nc>
 
 
 
