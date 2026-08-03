@@ -9,26 +9,6 @@ A dynamical reconstruction of the global monthly-mean oxygen isotopic
 composition of seawater. Journal of Geophysical Research: Oceans, 123(10),
 7206-7219. https://doi.org/10.1029/2018JC014300
 
-Data: https://doi.org/10.1594/PANGAEA.889922
-File: D18O_Breitkreuz_et_al_2018.nc  (~300 MB)
-
-The product is a 100-year monthly mean of an optimized 400-year equilibrium
-MITgcm simulation, constrained by the global monthly d18Osw compilation
-(1950-2011) and by climatological T/S (1951-1980) through variational data
-assimilation. It is therefore an independent, dynamically consistent
-alternative to both the LeGrande & Schmidt (2006) climatology and to the
-water-mass-fraction reconstructions computed in this repository.
-
-Raw file layout (as shipped by PANGAEA)
----------------------------------------
-Two horizontal grids are stored side by side:
-  * ``*_cs``    : the native cubed-sphere model grid  (32 x 192, 2D lat/lon)
-  * ``*_1deg``  : the same fields interpolated to a regular 1 deg lat-lon grid
-
-Variables: ``D18O_1deg``, ``THETA_1deg``, ``SALT_1deg``, each with dimensions
-``(month=12, depth=15, y=180, x=360)``, plus the 2D coordinate arrays
-``lat_1deg_center`` / ``lon_1deg_center`` and the 1D ``depth_center``.
-
 Conventions in the raw file that this module normalises
 ------------------------------------------------------
 * longitude runs -179.5 .. 179.5   -> rolled to 0.5 .. 359.5 to match the rest
@@ -37,10 +17,6 @@ Conventions in the raw file that this module normalises
 * land / below-bathymetry points are NaN
 * lat/lon are stored as 2D arrays even though the 1 deg grid is fully regular;
   they are collapsed back to 1D vectors here
-
-Only the ``_1deg`` fields are exposed: the cubed-sphere grid is curvilinear and
-cannot be fed to ``RegularGridInterpolator``, and the 1 deg version is what the
-authors provide for exactly this kind of comparison.
 """
 
 import warnings
@@ -72,18 +48,11 @@ def load_breitkreuz(nc_path, month=None, pad_vertical=True, pad_cyclic=True,
         Path to ``D18O_Breitkreuz_et_al_2018.nc``.
     month : int or None, optional
         1-12 to extract a single calendar month, or None (default) for the
-        annual mean. Below ~1000 m the seasonal range of the product is under
-        0.03 permil, so the annual mean is the appropriate field to compare
-        against the steady-state reconstructions of this study.
+        annual mean. 
     pad_vertical : bool, optional
         If True (default), extend the vertical axis by repeating the top and
-        bottom levels at depth 0 and at ``depth_bottom``. The raw grid only
-        spans 25-4855 m, so without this every observation shallower than 25 m
-        or deeper than 4855 m interpolates to NaN, which would silently remove
-        those points from RMSE comparisons against products that do cover
-        them. This is nearest-neighbour extension, not extrapolation: it only
-        recovers points where the top/bottom cell is already wet, so an
-        observation below the B18 seafloor correctly stays NaN.
+        bottom levels at depth 0 and at ``depth_bottom``. Defined to avoid having
+        Nan values above 25m and below 4855m in the interpolated field.
     pad_cyclic : bool, optional
         If True (default), wrap one column around each side in longitude
         (359.5 -> -0.5 and 0.5 -> 360.5) so that points falling between the
@@ -99,9 +68,7 @@ def load_breitkreuz(nc_path, month=None, pad_vertical=True, pad_cyclic=True,
     -------
     xarray.Dataset
         Dimensions ``(depth, lat, lon)`` with ``depth`` positive downwards and
-        ``lon`` in 0-360, both strictly increasing. Contains ``d18o`` (permil
-        VSMOW), and optionally ``salinity`` (psu) and ``theta`` (degC).
-        ``ds.attrs`` records the month selection and the padding applied.
+        ``lon`` in 0-360, both strictly increasing.
 
     Notes
     -----
