@@ -8,3 +8,6 @@ __pycache__/
 # Data (downloaded separately, see README)
 *.nc
 *.h5
+
+# CLAUDE
+CLAUDE.md
