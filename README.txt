@@ -9,7 +9,13 @@ This GitHub repository contains 3 different notebooks:
 - evaluation_reconstructions: Notebook used to compare the different reconstructions and to compare our results to other studies. It also compares them to the Breitkreuz et al. (2018) product (see below), both against the observations and directly product to product in the Southern Ocean.
 
 
-The data used in this study can be downloaded at: (add repository). To run the code, modify the data_path var for your own.
+The data used in this study can be downloaded at: (add repository). To point the code at your own
+copy, either set the D18O_DATA_PATH environment variable or edit the config.set_data_path(...) call
+in the second cell of the notebook.
+
+The data loading, region definitions and reusable computations live in scripts/ rather than in the
+notebooks; see scripts/README.md for what each module holds and for the conventions the products
+follow (depth positive downwards, longitude 0-360).
 
 
 The Breitkreuz et al. (2018) product

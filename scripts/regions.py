@@ -58,25 +58,34 @@ def basin_masks(df, lat_col='Latitude', lon_col='Longitude'):
     }
 
 
-def na_influenced(df, gamma_col='gamma', salinity_col='absolute_salinity'):
+def na_influenced(df, gamma_col='gamma', salinity_col='absolute_salinity',
+                  gamma_min=NA_GAMMA_MIN, gamma_max=NA_GAMMA_MAX,
+                  salinity_min=NA_SALINITY_MIN):
     """
     Mask of the deep waters carrying a North Atlantic signature.
 
-    Selected as ``27.9 <= gamma_n <= 28.05`` together with an absolute salinity
-    at or above 34.8 psu.
+    Selected by default as ``27.9 <= gamma_n <= 28.05`` together with an
+    absolute salinity at or above 34.8 psu.
 
     Parameters
     ----------
     df : pandas.DataFrame
     gamma_col, salinity_col : str, optional
-        Column names for neutral density and absolute salinity.
+        Column names for neutral density and absolute salinity. The GISS
+        compilation calls neutral density ``'gamma_n'`` in the HDF5 version and
+        ``'Gamma'`` once interpolated from the climatology, hence the parameter.
+    gamma_min, gamma_max, salinity_min : float, optional
+        Thresholds, defaulting to the module constants. The evaluation notebook
+        applies a slightly higher salinity cut (34.86) to the Bostock stations
+        than to the GISS compilation (34.8), so the cut is a parameter rather
+        than being fixed here.
 
     Returns
     -------
     pandas.Series of bool
     """
-    return ((df[gamma_col] >= NA_GAMMA_MIN) & (df[gamma_col] <= NA_GAMMA_MAX)
-            & (df[salinity_col] >= NA_SALINITY_MIN))
+    return ((df[gamma_col] >= gamma_min) & (df[gamma_col] <= gamma_max)
+            & (df[salinity_col] >= salinity_min))
 
 
 def southern_ocean(df, lat_col='Latitude'):
