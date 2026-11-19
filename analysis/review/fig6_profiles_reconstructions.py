@@ -105,8 +105,6 @@ def plot(datasets, model, out, style='dots'):
                    marker='x', transform=ccrs.PlateCarree())
         ax.text(uf.coords_dataset[i][0], uf.coords_dataset[i][1], f'({i + 1})',
                 fontsize=FONT, color=couleurs[i])
-    ax.text(0.99, 1.02, model, transform=ax.transAxes, ha='right', va='bottom',
-            fontsize=FONT + 5, fontweight='bold')
 
     # --- profiles --------------------------------------------------------------
     for i in range(12):
@@ -159,6 +157,10 @@ def plot(datasets, model, out, style='dots'):
 
         if xlabels:
             ax.set_xticklabels(['', '-0.4', '', '0.0', '', '0.4'], fontsize=FONT)
+        if i == 0:
+            # model name centred in the gap between the map and the panels
+            fig.text(0.5, ax.get_position().y1 + 0.012, model, ha='center', va='bottom',
+                     fontsize=FONT + 5, fontweight='bold')
         if i == 11:
             bottom = ax.get_position().y0
 
@@ -197,7 +199,7 @@ def plot_crossplot(datasets, model, out):
     1:1 line. Same map, colours and dots as the profile figure.
     """
     fig = plt.figure(figsize=(16, 18))
-    gs = fig.add_gridspec(4, 4, wspace=0.06, hspace=0.08, height_ratios=[0.85, 1, 1, 1])
+    gs = fig.add_gridspec(4, 4, wspace=0.06, hspace=0.16, height_ratios=[0.85, 1, 1, 1])
     couleurs = plt.cm.tab20(range(12))
 
     ax = fig.add_subplot(gs[0, :], projection=ccrs.PlateCarree())
@@ -214,8 +216,6 @@ def plot_crossplot(datasets, model, out):
                    marker='x', transform=ccrs.PlateCarree())
         ax.text(uf.coords_dataset[i][0], uf.coords_dataset[i][1], f'({i + 1})',
                 fontsize=FONT, color=couleurs[i])
-    ax.text(0.99, 1.02, model, transform=ax.transAxes, ha='right', va='bottom',
-            fontsize=FONT + 5, fontweight='bold')
 
     # common square axis range covering every bottle, rounded out to 0.1 permil
     cols = ['d18O', 'd18O_rcst_' + model, 'd18O_rcst_mean_' + model]
@@ -257,6 +257,10 @@ def plot_crossplot(datasets, model, out):
             ax.set_xlabel('Observed ' + pl.D18O_LABEL, fontsize=FONT)
         if ylabels:
             ax.set_ylabel('Reconstructed ' + pl.D18O_LABEL, fontsize=FONT)
+        if i == 0:
+            # model name centred in the gap between the map and the panels
+            fig.text(0.5, ax.get_position().y1 + 0.012, model, ha='center', va='bottom',
+                     fontsize=FONT + 5, fontweight='bold')
         if i == 11:
             bottom = ax.get_position().y0
 
