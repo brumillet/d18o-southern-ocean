@@ -114,7 +114,8 @@ def salinity_max_near(df, gamma, salinity_col='absolute_salinity',
 
 
 def density_line(ax, gamma, salinity=None, x=0.98, font=13,
-                 color=DENSITY_LINE_COLOR, ls='--', alpha=0.8, gap=11):
+                 color=DENSITY_LINE_COLOR, ls='--', alpha=0.8, gap=11,
+                 label_y=None):
     """
     Draw the neutral-density line of a profile panel, labelled.
 
@@ -136,6 +137,10 @@ def density_line(ax, gamma, salinity=None, x=0.98, font=13,
         Appearance of the line and its labels.
     gap : float, optional
         Vertical offset of the labels from the line, in points.
+    label_y : float or None, optional
+        If given, both labels are stacked at this height (axes fraction, bottom
+        of the text block) instead of beside the line, so they sit at the same
+        place in every panel.
 
     Returns
     -------
@@ -149,6 +154,17 @@ def density_line(ax, gamma, salinity=None, x=0.98, font=13,
     different distance depending on where the line sits.
     """
     ax.axhline(y=gamma, ls=ls, color=color, alpha=alpha)
+
+    if label_y is not None:
+        # Fixed corner: both labels stacked at the same axes position in every
+        # panel, the density on top, independent of where the line sits.
+        lines = [r'$\gamma_n$ = ' + format(gamma, '.2f')]
+        if salinity is not None and np.isfinite(salinity):
+            lines.append(r'$S_{max}$ = ' + format(salinity, '.2f'))
+        ax.text(x, label_y, '\n'.join(lines), transform=ax.transAxes,
+                fontsize=font, color=color, ha='right', va='bottom',
+                linespacing=1.3)
+        return
 
     def annotate(text, dy):
         # A faint box keeps the labels readable where they cross the scatter.
