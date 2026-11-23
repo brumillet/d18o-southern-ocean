@@ -11,8 +11,6 @@ all as small dots (--style dots). With --style bands, each series is instead
 averaged in neutral-density bins (0.1 kg m-3 above 27.8, 0.05 kg m-3 below):
 a line for the bin mean and a band for +-1 sigma of the bottles in the bin, the
 same measure of spread for the observations and both reconstructions.
-The map above keeps the dataset colours as the key that
-links each panel to its location (R1.5), with the stations as crosses.
 
 The end-members are re-optimised exactly as in notebooks/optimization_fractions.ipynb
 (cells 26 and 40-44).
@@ -28,8 +26,6 @@ import sys
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
-import cartopy.crs as ccrs
-import cartopy.feature as cfeature
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, os.path.join(ROOT, 'scripts'))
@@ -86,30 +82,14 @@ GAMMA_MID = 0.5 * (GAMMA_EDGES[1:] + GAMMA_EDGES[:-1])
 
 
 def plot(datasets, model, out, style='dots'):
-    fig = plt.figure(figsize=(16, 20))
-    gs = fig.add_gridspec(4, 4, wspace=0.04, hspace=0.1)
+    fig = plt.figure(figsize=(16, 15))
+    gs = fig.add_gridspec(3, 4, wspace=0.04, hspace=0.1)
     couleurs = plt.cm.tab20(range(12))
-
-    # --- map: colour key of the datasets -------------------------------------
-    ax = fig.add_subplot(gs[0, :], projection=ccrs.PlateCarree())
-    ax.coastlines(resolution='110m')
-    ax.add_feature(cfeature.LAND, facecolor='0.8', edgecolor='none', zorder=0)
-    gl = ax.gridlines(draw_labels={'bottom': 'x', 'right': 'y', 'left': 'y'},
-                      ylocs=[-90 + 15 * i for i in range(5)])
-    gl.xlabel_style = {'size': FONT - 1}
-    gl.ylabel_style = {'size': FONT - 1}
-    ax.set_ylim(-90, -20)
-    ax.set_xlim(-180, 180)
-    for i in range(12):
-        ax.scatter(datasets[i]['Longitude'], datasets[i]['Latitude'], color=couleurs[i],
-                   marker='x', transform=ccrs.PlateCarree())
-        ax.text(uf.coords_dataset[i][0], uf.coords_dataset[i][1], f'({i + 1})',
-                fontsize=FONT, color=couleurs[i])
 
     # --- profiles --------------------------------------------------------------
     for i in range(12):
         df = datasets[i]
-        i_row, i_col = i // 4 + 1, i % 4
+        i_row, i_col = i // 4, i % 4
         xlabels, ylabels = uf.get_xylabels(3, 4, i)
         ax = fig.add_subplot(gs[i_row, i_col])
 
@@ -158,7 +138,7 @@ def plot(datasets, model, out, style='dots'):
         if xlabels:
             ax.set_xticklabels(['', '-0.4', '', '0.0', '', '0.4'], fontsize=FONT)
         if i == 0:
-            # model name centred in the gap between the map and the panels
+            # model name centred above the panels
             fig.text(0.5, ax.get_position().y1 + 0.012, model, ha='center', va='bottom',
                      fontsize=FONT + 5, fontweight='bold')
         if i == 11:
@@ -196,32 +176,15 @@ def plot_crossplot(datasets, model, out):
     """
     Observed against reconstructed delta-18O, one panel per dataset, with both
     reconstructions (individual end-members in cyan, averaged in magenta) and the
-    1:1 line. Same map, colours and dots as the profile figure.
+    1:1 line. Same colours and dots as the profile figure.
     """
     # The panels are square (equal axes), so the figure is sized for square grid
     # cells: 4 panels of width w across 0.89 x 16 in with 0.06 w gaps gives
-    # w ~ 3.4 in and 3 rows ~ 10.4 in; the map (360 x 70 deg) is ~ 2.8 in tall.
-    # Only the map-to-panels gap is widened, for the longitude labels and model name.
-    fig = plt.figure(figsize=(16, 15.8))
-    outer = fig.add_gridspec(2, 1, height_ratios=[2.77, 10.43], hspace=0.15,
-                             left=0.08, right=0.97, top=0.98, bottom=0.08)
-    gs = outer[1].subgridspec(3, 4, wspace=0.06, hspace=0.06)
+    # w ~ 3.4 in and 3 rows ~ 10.4 in, plus room above for the model name.
+    fig = plt.figure(figsize=(16, 12.6))
+    gs = fig.add_gridspec(3, 4, wspace=0.06, hspace=0.06,
+                          left=0.08, right=0.97, top=0.95, bottom=0.08)
     couleurs = plt.cm.tab20(range(12))
-
-    ax = fig.add_subplot(outer[0], projection=ccrs.PlateCarree())
-    ax.coastlines(resolution='110m')
-    ax.add_feature(cfeature.LAND, facecolor='0.8', edgecolor='none', zorder=0)
-    gl = ax.gridlines(draw_labels={'bottom': 'x', 'right': 'y', 'left': 'y'},
-                      ylocs=[-90 + 15 * i for i in range(5)])
-    gl.xlabel_style = {'size': FONT - 1}
-    gl.ylabel_style = {'size': FONT - 1}
-    ax.set_ylim(-90, -20)
-    ax.set_xlim(-180, 180)
-    for i in range(12):
-        ax.scatter(datasets[i]['Longitude'], datasets[i]['Latitude'], color=couleurs[i],
-                   marker='x', transform=ccrs.PlateCarree())
-        ax.text(uf.coords_dataset[i][0], uf.coords_dataset[i][1], f'({i + 1})',
-                fontsize=FONT, color=couleurs[i])
 
     # common square axis range covering every bottle, rounded out to 0.1 permil
     cols = ['d18O', 'd18O_rcst_' + model, 'd18O_rcst_mean_' + model]
@@ -266,7 +229,7 @@ def plot_crossplot(datasets, model, out):
         if ylabels:
             ax.set_ylabel('Reconstructed ' + pl.D18O_LABEL, fontsize=FONT)
         if i == 0:
-            # model name centred in the gap between the map and the panels
+            # model name centred above the panels
             fig.text(0.5, ax.get_position().y1 + 0.012, model, ha='center', va='bottom',
                      fontsize=FONT + 5, fontweight='bold')
         if i == 11:
@@ -277,7 +240,7 @@ def plot_crossplot(datasets, model, out):
                             (XAVG_COLOR, 'Averaged end-members')]]
     handles.append(Line2D([], [], color='0.5', ls='--', lw=1, label='1:1 line'))
     fig.legend(handles=handles, fontsize=FONT, ncol=3, loc='upper center',
-               bbox_to_anchor=(0.5, bottom - 0.035), frameon=False)
+               bbox_to_anchor=(0.5, bottom - 0.065), frameon=False)
 
     fig.savefig(out, bbox_inches='tight', dpi=200)
     print('saved', out, 'axis range', lims)
