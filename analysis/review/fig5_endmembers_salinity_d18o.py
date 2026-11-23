@@ -108,7 +108,7 @@ def main():
     a = p.parse_args()
     d18o, sal = optimise(a.data)
     plot(d18o, sal, os.path.join(ROOT, 'figures', 'optimization',
-                                 'absolute_salinity_d18o_endmembers_review.png'))
+                                 'absolute_salinity_d18o_endmembers.png'))
 
 
 if __name__ == '__main__':

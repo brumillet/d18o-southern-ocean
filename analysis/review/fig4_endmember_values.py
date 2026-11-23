@@ -241,7 +241,7 @@ def main():
                       f'{optimizer.mean_end_members[tracer][m][d]:+.3f} '
                       f'95% [{lo:+.3f}, {hi:+.3f}]; excluded datasets {excl}')
 
-    name = ('d18o_absolute_salinity_values_EM_12_datasets_3models_review'
+    name = ('d18o_absolute_salinity_values_EM_12_datasets_3models'
             + ('_MS' if a.with_ms else '') + '.png')
     plot(results, dyes, os.path.join(ROOT, 'figures', 'optimization', name))
 

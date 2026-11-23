@@ -261,11 +261,11 @@ def main():
     if 'crossplot' in styles:
         styles.remove('crossplot')
         plot_crossplot(res['datasets'], a.model, os.path.join(
-            ROOT, 'figures', 'optimization', f'd18o_crossplot_{a.model}_review.png'))
+            ROOT, 'figures', 'optimization', f'd18o_crossplot_{a.model}.png'))
     for style in styles:
         suffix = '' if style == 'dots' else '_bands'
         out = os.path.join(ROOT, 'figures', 'optimization',
-                           f'd18o_profiles_SO_map_{a.model}_rcs_dataset_&mean_review{suffix}.png')
+                           f'd18o_profiles_SO_map_{a.model}_rcs_dataset_&mean{suffix}.png')
         plot(res['datasets'], a.model, out, style=style)
 
 
