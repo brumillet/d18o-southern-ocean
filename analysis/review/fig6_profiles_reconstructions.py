@@ -198,11 +198,17 @@ def plot_crossplot(datasets, model, out):
     reconstructions (individual end-members in cyan, averaged in magenta) and the
     1:1 line. Same map, colours and dots as the profile figure.
     """
-    fig = plt.figure(figsize=(16, 18))
-    gs = fig.add_gridspec(4, 4, wspace=0.06, hspace=0.16, height_ratios=[0.85, 1, 1, 1])
+    # The panels are square (equal axes), so the figure is sized for square grid
+    # cells: 4 panels of width w across 0.89 x 16 in with 0.06 w gaps gives
+    # w ~ 3.4 in and 3 rows ~ 10.4 in; the map (360 x 70 deg) is ~ 2.8 in tall.
+    # Only the map-to-panels gap is widened, for the longitude labels and model name.
+    fig = plt.figure(figsize=(16, 15.8))
+    outer = fig.add_gridspec(2, 1, height_ratios=[2.77, 10.43], hspace=0.15,
+                             left=0.08, right=0.97, top=0.98, bottom=0.08)
+    gs = outer[1].subgridspec(3, 4, wspace=0.06, hspace=0.06)
     couleurs = plt.cm.tab20(range(12))
 
-    ax = fig.add_subplot(gs[0, :], projection=ccrs.PlateCarree())
+    ax = fig.add_subplot(outer[0], projection=ccrs.PlateCarree())
     ax.coastlines(resolution='110m')
     ax.add_feature(cfeature.LAND, facecolor='0.8', edgecolor='none', zorder=0)
     gl = ax.gridlines(draw_labels={'bottom': 'x', 'right': 'y', 'left': 'y'},
@@ -221,11 +227,13 @@ def plot_crossplot(datasets, model, out):
     cols = ['d18O', 'd18O_rcst_' + model, 'd18O_rcst_mean_' + model]
     allv = np.concatenate([np.asarray(d[c], float) for d in datasets for c in cols])
     lims = (np.floor(np.nanmin(allv) * 10 - 0.5) / 10, np.ceil(np.nanmax(allv) * 10 + 0.5) / 10)
-    ticks = np.round(np.arange(np.ceil(lims[0] * 5) / 5, lims[1] + 1e-9, 0.2), 1)
+    # no tick on the upper edge: with the panels touching, its label would run
+    # into the first label of the next panel
+    ticks = np.round(np.arange(np.ceil(lims[0] * 5) / 5, lims[1] - 1e-9, 0.2), 1)
 
     for i in range(12):
         df = datasets[i]
-        i_row, i_col = i // 4 + 1, i % 4
+        i_row, i_col = i // 4, i % 4
         xlabels, ylabels = uf.get_xylabels(3, 4, i)
         ax = fig.add_subplot(gs[i_row, i_col])
         obs = df['d18O']
