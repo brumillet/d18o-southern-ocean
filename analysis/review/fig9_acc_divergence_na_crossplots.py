@@ -56,7 +56,7 @@ LON0 = 290.0              # path starts at Drake Passage, 70 W
 L_EDGES = np.arange(0, 361, 10.0)
 G_EDGES = np.round(np.arange(26.8, 28.4501, 0.05), 3)
 LEVELS = np.round(np.arange(0, 0.2 + 1e-9, 0.025), 3)   # 8 colour classes
-NA_COLOR = 'darkorange'
+NA_COLOR = '#00c2e0'   # cyan: NA core lines, label and the NA-like observations in (d)
 PREC_COLOR = '#f08080'    # light red: analytical precision, band in (a-c) and contour in (d-e)
 
 # Sectors along the path coordinate (degrees east of 70 W): limits at 20 E and 150 E
