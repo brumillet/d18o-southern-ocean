@@ -48,10 +48,12 @@ PRODUCT_LABELS = {
     'b18': bk.BREITKREUZ_LABEL,
 }
 
+# The reconstructions avoid the first 12 tab20 colours (blue, orange, green, red,
+# purple, brown pairs): those mark the GISS observation datasets in the figures.
 PRODUCT_COLORS = {
-    'nemo': '#1f77b4',
-    'ocim': '#ff7f0e',
-    'tmi': '#2ca02c',
+    'nemo': '#c51b7d',   # magenta
+    'ocim': '#17becf',   # cyan
+    'tmi': '#bcbd22',    # olive
     'ls': '#d62728',
     'b18': bk.BREITKREUZ_COLOR,
 }
