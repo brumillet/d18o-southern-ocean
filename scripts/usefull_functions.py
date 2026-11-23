@@ -34,6 +34,49 @@ l_lon_accepted = [(-60, 20), (-70, 30), (-70, -10), (-60, -30),
                   (50, 80), (50, 80), (80, 110), (160, 270)]
 
 
+def density_of_max(df, window=(27.5, 28.5), edge=0.02, min_bottles=3,
+                   d18o_col='d18O', gamma_col='gamma_n'):
+    """
+    Neutral density of the mid-density d18O maximum of a dataset.
+
+    For each station (unique position rounded to 0.01 deg) with at least
+    ``min_bottles`` bottles inside ``window``, take the neutral density of the
+    bottle with the highest d18O. Stations where that bottle lies within
+    ``edge`` of either limit are discarded: d18O there increases towards the
+    limit rather than peaking within the range. The dataset value is the
+    median over the remaining stations.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        One dataset's bottles, with Longitude, Latitude, d18O and gamma columns.
+    window : tuple, optional
+        Neutral-density search range (kg m-3).
+    edge : float, optional
+        Maxima closer than this to a limit are discarded (kg m-3).
+    min_bottles : int, optional
+        Bottles a station needs inside ``window`` to be used.
+
+    Returns
+    -------
+    float
+        Median density of the station maxima (kg m-3); NaN if no station
+        qualifies.
+    """
+    st = (df['Longitude'].round(2).astype(str) + '_' + df['Latitude'].round(2).astype(str)).values
+    g = np.asarray(df[gamma_col], dtype=float)
+    d = np.asarray(df[d18o_col], dtype=float)
+    inside = (g >= window[0]) & (g <= window[1]) & np.isfinite(d)
+    peaks = []
+    for station in np.unique(st):
+        m = (st == station) & inside
+        if m.sum() >= min_bottles:
+            g_max = g[m][np.argmax(d[m])]
+            if window[0] + edge < g_max < window[1] - edge:
+                peaks.append(g_max)
+    return float(np.median(peaks)) if peaks else np.nan
+
+
 def create_l_depth():
     """
     Create a list of 45 depth levels for ocean depth discretization.

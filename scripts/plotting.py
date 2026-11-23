@@ -18,8 +18,8 @@ import numpy as np
 import usefull_functions as uf
 
 # Axis label for delta-18O, spelled out here so every figure agrees.
-D18O_LABEL = r'$\delta^{18}O$ (‰)'
-D18O_DIFF_LABEL = r'$\Delta \delta^{18}O$ (‰)'
+D18O_LABEL = r'$\delta^{18}\mathrm{O}$ (‰)'
+D18O_DIFF_LABEL = r'$\Delta \delta^{18}\mathrm{O}$ (‰)'
 GAMMA_LABEL = r'$\gamma_n$ (kg m$^{-3}$)'
 
 # Cumulative-RMSE-against-depth axis, written f(d) in the notebook text.
