@@ -25,14 +25,10 @@ GAMMA_LABEL = r'$\gamma_n$ (kg m$^{-3}$)'
 # Cumulative-RMSE-against-depth axis, written f(d) in the notebook text.
 ERROR_DEPTH_LABEL = r'$f(d)$ (‰)'
 
-# One colour per surface end-member, shared by the end-member figures (Figures 4
-# and 5) so that a region keeps its colour throughout. Okabe-Ito colours, which
-# stay distinguishable with the common colour-vision deficiencies.
+# End-member colours (Okabe-Ito, colour-blind safe), model markers and
+# end-member names, shared by Figures 4 and 5.
 ENDMEMBER_COLORS = {'MS': '#CC79A7', 'HS': '#0072B2', 'NA': '#E69F00', 'AA': '#009E73'}
-# One marker shape per model, shared by Figures 4 and 5.
 MODEL_MARKERS = {'TMI': 'o', 'OCIM': 's', 'NEMO': '^'}
-
-# Written out in full, without the acronyms, in the figures (R1.4).
 ENDMEMBER_NAMES = {'MS': 'Mid-latitude Southern Ocean',
                    'HS': 'High-latitude Southern Ocean',
                    'NA': 'North Atlantic', 'AA': 'Antarctic margin'}

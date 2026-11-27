@@ -1,37 +1,17 @@
 # -*- coding: utf-8 -*-
 """
-Figure 4 redrawn for the reviewers (R1.4, R1.6, R1.11, R3.22).
+Figure 4: optimised end-members of each Southern Ocean dataset, for TMI, OCIM
+and NEMO; delta-18O in (a)-(c), absolute salinity in (d)-(f).
 
-Optimised end-members of each of the 12 Southern Ocean datasets for TMI, OCIM
-and NEMO (one column per model): delta-18O in (a)-(c), absolute salinity in (d)-(f).
-  - one colour-blind-safe colour (Okabe-Ito) per end-member and one shape per
-    model (TMI circles, OCIM squares, NEMO triangles), as in Figure 5
-    (plotting.ENDMEMBER_COLORS, plotting.MODEL_MARKERS),
-  - filled symbols: datasets included in the average; open symbols: datasets
-    excluded from it (R1.6, R1.11),
-  - dashed line: average over the included datasets (the value used for the
-    averaged reconstruction, printed at the right of each panel),
-  - shading: 95 % interval of that average from the two-stage bootstrap
-    (stations within each dataset, then the datasets entering the average,
-    resampled with replacement, 1000 draws each; R3.15), unless --no-ci,
-  - region names written out in the legend, without acronyms (R1.4),
-  - RMSE of the averaged reconstruction against all bottles, with units.
-
-The figure shows the HS, NA and AA end-members. --with-ms adds the MS
-end-member (R3.22), with its own exclusion criterion (MS fraction >= 0.2 in at
-least one bottle); that version is for checking only and is not committed.
-
-The end-members are re-optimised exactly as in notebooks/optimization_fractions.ipynb
-(cell 26 for delta-18O, cell 30 for salinity); exclusions are those of
-TracerOptimizer.calculate_exclusion_indices.
+Filled symbols: datasets included in the average; open symbols: excluded.
+Dashed line: average; shading: its 95 % bootstrap interval.
 
 Run from the repository root:
-    python analysis/review/fig4_endmember_values.py --data E:/Data/d18o_so/
+    python scripts/fig4_endmember_values.py --data E:/Data/d18o_so/
 """
 
 import argparse
 import os
-import sys
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -40,25 +20,22 @@ from matplotlib.lines import Line2D
 from matplotlib.patches import Patch
 from scipy.optimize import lsq_linear
 
-ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-sys.path.insert(0, os.path.join(ROOT, 'scripts'))
-import usefull_functions as uf  # noqa: E402
-import plotting as pl  # noqa: E402
-from tracer_optimization import TracerOptimizer  # noqa: E402
+import usefull_functions as uf
+import plotting as pl
+from tracer_optimization import TracerOptimizer
 
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FONT = 14
 MODELS = ['TMI', 'OCIM', 'NEMO']
 DYES = ['dyeLL', 'dyeMS', 'dyeNP', 'dyeHS', 'dyeNA', 'dyeAA']
-# Colour identifies the end-member and shape the model, as in Figure 5:
-# each panel is one model, so all its symbols share that model's shape.
 STYLE = {d: dict(name=pl.ENDMEMBER_NAMES[d[3:]], color=pl.ENDMEMBER_COLORS[d[3:]])
          for d in ['dyeMS', 'dyeHS', 'dyeNA', 'dyeAA']}
 MS = 55              # marker area (pt^2)
 N_BOOT = 1000
 SEED = 1
 
-# Optimisation set-up per tracer (notebook cells 26 and 30). LL and NP are fixed
-# through near-equal bounds; the other end-members are bounded.
+# Optimisation set-up (as in notebooks/optimization_fractions.ipynb).
+# LL and NP are fixed through near-equal bounds.
 TRACERS = {
     'd18O': dict(
         x0=[0.45, -0.3, -0.35, -0.2, 0.3, -0.4],
@@ -77,7 +54,7 @@ TRACERS = {
 
 
 def optimise(data_path, tracer):
-    """Same set-up as cells 26 (delta-18O) and 30 (salinity) of the notebook."""
+    """Optimise the end-members of `tracer` for every dataset and model."""
     t = TRACERS[tracer]
     optimizer = TracerOptimizer(data_path)
     res = optimizer.run_complete_optimization(
@@ -89,16 +66,11 @@ def optimise(data_path, tracer):
 
 def bootstrap_ci(optimizer, datasets, tracer, dyes, rng):
     """
-    95 % interval of each averaged end-member: resample the stations of each
-    dataset and refit (1000 draws), then resample the included datasets, take one
-    station-resampled fit of each and average (1000 draws); as
-    analysis/review/endmember_bootstrap.py. Returns {(model, dye): (low, high)}.
+    95 % interval of each averaged end-member from a two-stage bootstrap:
+    stations resampled within each dataset, then the included datasets.
+    Returns {(model, dye): (low, high)}.
     """
     lb, ub = np.array(TRACERS[tracer]['lb']), np.array(TRACERS[tracer]['ub'])
-
-    def fit(F, y):
-        return lsq_linear(F.T, y, bounds=(lb, ub), method='bvls').x
-
     ci = {}
     for m in MODELS:
         boot = {}
@@ -112,7 +84,7 @@ def bootstrap_ci(optimizer, datasets, tracer, dyes, rng):
             draws = np.empty((N_BOOT, 6))
             for b in range(N_BOOT):
                 rows = np.concatenate([groups[k] for k in rng.integers(0, len(groups), len(groups))])
-                draws[b] = fit(F[:, rows], y[rows])
+                draws[b] = lsq_linear(F[:, rows].T, y[rows], bounds=(lb, ub), method='bvls').x
             boot[i] = draws
         for d in dyes:
             j = DYES.index(d)
@@ -132,9 +104,8 @@ def spread_labels(values, min_gap):
     pos = np.asarray(values, float)[order].copy()
     for k in range(1, len(pos)):
         pos[k] = max(pos[k], pos[k - 1] + min_gap)
-    shift = (np.mean(np.asarray(values)[order]) - np.mean(pos))   # re-centre the group
     out = np.empty_like(pos)
-    out[order] = pos + shift
+    out[order] = pos + np.mean(np.asarray(values)[order]) - np.mean(pos)
     return out
 
 
@@ -144,7 +115,7 @@ def plot_row(axes, row, tracer, optimizer, res, dyes, ci):
     means = optimizer.mean_end_members[tracer]
     n = len(res['datasets'])
     x = np.arange(n)
-    offs = dict(zip(dyes, np.linspace(-0.22, 0.22, len(dyes))))   # side by side within a dataset
+    offs = dict(zip(dyes, np.linspace(-0.22, 0.22, len(dyes))))
     for j, (ax, m) in enumerate(zip(axes, MODELS)):
         for d in dyes:
             s, k = STYLE[d], DYES.index(d)
@@ -158,14 +129,12 @@ def plot_row(axes, row, tracer, optimizer, res, dyes, ci):
             ax.scatter(x[~inc] + offs[d], em[m][k, ~inc], s=MS, marker=pl.MODEL_MARKERS[m],
                        facecolors='white', edgecolors=s['color'], linewidths=1.4, zorder=3)
 
-        # averaged values at the right edge, pushed apart where they would overlap
         vals = [means[m][d] for d in dyes]
         for d, yl in zip(dyes, spread_labels(vals, t['gap'])):
             ax.text(n - 0.35, yl, format(means[m][d], t['fmt']), color=STYLE[d]['color'],
                     fontsize=FONT - 1, va='center', ha='left', fontweight='bold')
 
         rmse = uf.rmse_model_recons(res['tracer_data'], tracer, m, optimizer.mean_end_members)
-        # above the axes: points at the bounds would hide labels inside
         ax.text(0.0, 1.02, uf.panels_letter_parenthesis[3 * row + j], transform=ax.transAxes,
                 fontsize=FONT, fontweight='bold', ha='left', va='bottom')
         ax.text(0.09, 1.02, m, transform=ax.transAxes, fontsize=FONT, ha='left', va='bottom')
@@ -197,8 +166,6 @@ def plot(results, dyes, out):
         ax.set_xticklabels([str(i + 1) for i in range(n)])
         ax.set_xlabel('Dataset', fontsize=FONT)
 
-    # legend: end-members by colour (patches, so no shape is implied), then the
-    # filled/open convention shown with the three model shapes
     def shapes(**kw):
         return tuple(Line2D([], [], ls='', marker=pl.MODEL_MARKERS[m], ms=8, **kw) for m in MODELS)
 
@@ -222,7 +189,7 @@ def plot(results, dyes, out):
 def main():
     p = argparse.ArgumentParser()
     p.add_argument('--data', default='E:/Data/d18o_so/')
-    p.add_argument('--with-ms', action='store_true', help='add the MS end-member (not committed)')
+    p.add_argument('--with-ms', action='store_true', help='also show the MS end-member')
     p.add_argument('--no-ci', action='store_true', help='skip the bootstrap shading')
     a = p.parse_args()
 
@@ -233,13 +200,6 @@ def main():
         optimizer, res = optimise(a.data, tracer)
         ci = None if a.no_ci else bootstrap_ci(optimizer, res['datasets'], tracer, dyes, rng)
         results[tracer] = (optimizer, res, ci)
-        for m in MODELS:
-            for d in dyes:
-                excl = sorted(i + 1 for i in optimizer.get_exclusion_indices(m, d))
-                lo, hi = ci[m, d] if ci else (np.nan, np.nan)
-                print(f'{tracer:17s} {m:5s} {d[3:]:3s} mean '
-                      f'{optimizer.mean_end_members[tracer][m][d]:+.3f} '
-                      f'95% [{lo:+.3f}, {hi:+.3f}]; excluded datasets {excl}')
 
     name = ('d18o_absolute_salinity_values_EM_12_datasets_3models'
             + ('_MS' if a.with_ms else '') + '.png')
