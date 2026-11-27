@@ -34,72 +34,50 @@ l_lon_accepted = [(-60, 20), (-70, 30), (-70, -10), (-60, -30),
                   (50, 80), (50, 80), (80, 110), (160, 270)]
 
 
-def density_of_max(df, window=(27.5, 28.5), edge=0.02, min_bottles=3,
-                   d18o_col='d18O', gamma_col='gamma_n'):
+def _station_maxima(df, window=(27.5, 28.5), edge=0.02, min_bottles=3,
+                    d18o_col='d18O', gamma_col='gamma_n', salinity_col='absolute_salinity'):
     """
-    Neutral density of the mid-density d18O maximum of a dataset.
+    Highest-d18O bottle of each station, as (neutral density, salinity) pairs.
 
-    For each station (unique position rounded to 0.01 deg) with at least
-    ``min_bottles`` bottles inside ``window``, take the neutral density of the
-    bottle with the highest d18O. Stations where that bottle lies within
-    ``edge`` of either limit are discarded: d18O there increases towards the
-    limit rather than peaking within the range. The dataset value is the
-    median over the remaining stations.
-
-    Parameters
-    ----------
-    df : pandas.DataFrame
-        One dataset's bottles, with Longitude, Latitude, d18O and gamma columns.
-    window : tuple, optional
-        Neutral-density search range (kg m-3).
-    edge : float, optional
-        Maxima closer than this to a limit are discarded (kg m-3).
-    min_bottles : int, optional
-        Bottles a station needs inside ``window`` to be used.
-
-    Returns
-    -------
-    float
-        Median density of the station maxima (kg m-3); NaN if no station
-        qualifies.
+    Only stations (unique position rounded to 0.01 deg) with at least
+    ``min_bottles`` bottles inside ``window`` are used, and stations whose
+    highest-d18O bottle lies within ``edge`` of either limit are discarded:
+    d18O there increases towards the limit rather than peaking within the range.
     """
     st = (df['Longitude'].round(2).astype(str) + '_' + df['Latitude'].round(2).astype(str)).values
     g = np.asarray(df[gamma_col], dtype=float)
     d = np.asarray(df[d18o_col], dtype=float)
+    s = np.asarray(df[salinity_col], dtype=float) if salinity_col in df else np.full(len(df), np.nan)
     inside = (g >= window[0]) & (g <= window[1]) & np.isfinite(d)
-    peaks = []
+    out = []
     for station in np.unique(st):
         m = (st == station) & inside
         if m.sum() >= min_bottles:
-            g_max = g[m][np.argmax(d[m])]
-            if window[0] + edge < g_max < window[1] - edge:
-                peaks.append(g_max)
+            k = np.argmax(d[m])
+            if window[0] + edge < g[m][k] < window[1] - edge:
+                out.append((g[m][k], s[m][k]))
+    return out
+
+
+def density_of_max(df, **kwargs):
+    """
+    Neutral density of the mid-density d18O maximum of a dataset (kg m-3):
+    median over stations of the density of their highest-d18O bottle (see
+    _station_maxima for the selection, keyword arguments are passed on).
+    NaN if no station qualifies.
+    """
+    peaks = _station_maxima(df, **kwargs)
+    return float(np.median([p[0] for p in peaks])) if peaks else np.nan
+
+
+def salinity_at_max(df, **kwargs):
+    """
+    Salinity at the mid-density d18O maximum of a dataset: median over
+    stations of the salinity of the same highest-d18O bottles that define
+    density_of_max. NaN if no station qualifies.
+    """
+    peaks = [p[1] for p in _station_maxima(df, **kwargs) if np.isfinite(p[1])]
     return float(np.median(peaks)) if peaks else np.nan
-
-
-def salinity_at_density(df, gamma, salinity_col='absolute_salinity', gamma_col='gamma_n'):
-    """
-    Salinity of a dataset at a given neutral density.
-
-    Each station's salinity profile (sorted in neutral density) is linearly
-    interpolated to ``gamma``; stations whose bottles do not bracket ``gamma``
-    are skipped. The dataset value is the median over stations.
-
-    Returns
-    -------
-    float
-        Median interpolated salinity; NaN if no station brackets ``gamma``.
-    """
-    if not np.isfinite(gamma):
-        return np.nan
-    st = (df['Longitude'].round(2).astype(str) + '_' + df['Latitude'].round(2).astype(str)).values
-    values = []
-    for station in np.unique(st):
-        x = df[st == station][[gamma_col, salinity_col]].dropna().sort_values(gamma_col)
-        g, s = x[gamma_col].values, x[salinity_col].values
-        if len(g) >= 2 and g[0] <= gamma <= g[-1]:
-            values.append(np.interp(gamma, g, s))
-    return float(np.median(values)) if values else np.nan
 
 
 def create_l_depth():
