@@ -127,7 +127,7 @@ def salinity_max_near(df, gamma, salinity_col='absolute_salinity',
 
 def density_line(ax, gamma, salinity=None, x=0.98, font=13,
                  color=DENSITY_LINE_COLOR, ls='--', alpha=0.8, gap=11,
-                 label_y=None):
+                 label_y=None, salinity_label=r'$S_{max}$'):
     """
     Draw the neutral-density line of a profile panel, labelled.
 
@@ -153,6 +153,8 @@ def density_line(ax, gamma, salinity=None, x=0.98, font=13,
         If given, both labels are stacked at this height (axes fraction, bottom
         of the text block) instead of beside the line, so they sit at the same
         place in every panel.
+    salinity_label : str, optional
+        Symbol written before the salinity value (default ``$S_{max}$``).
 
     Returns
     -------
@@ -172,7 +174,7 @@ def density_line(ax, gamma, salinity=None, x=0.98, font=13,
         # panel, the density on top, independent of where the line sits.
         lines = [r'$\gamma_n$ = ' + format(gamma, '.2f')]
         if salinity is not None and np.isfinite(salinity):
-            lines.append(r'$S_{max}$ = ' + format(salinity, '.2f'))
+            lines.append(salinity_label + ' = ' + format(salinity, '.2f'))
         ax.text(x, label_y, '\n'.join(lines), transform=ax.transAxes,
                 fontsize=font, color=color, ha='right', va='bottom',
                 linespacing=1.3)
@@ -188,7 +190,7 @@ def density_line(ax, gamma, salinity=None, x=0.98, font=13,
 
     annotate(r'$\gamma_n$ = ' + format(gamma, '.2f'), gap)
     if salinity is not None and np.isfinite(salinity):
-        annotate(r'$S_{max}$ = ' + format(salinity, '.2f'), -gap)
+        annotate(salinity_label + ' = ' + format(salinity, '.2f'), -gap)
 
 
 def southern_map(ax, extent=(-180, 180, -90, -20), font=14, resolution='110m',

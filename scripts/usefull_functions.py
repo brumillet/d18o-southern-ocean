@@ -77,6 +77,31 @@ def density_of_max(df, window=(27.5, 28.5), edge=0.02, min_bottles=3,
     return float(np.median(peaks)) if peaks else np.nan
 
 
+def salinity_at_density(df, gamma, salinity_col='absolute_salinity', gamma_col='gamma_n'):
+    """
+    Salinity of a dataset at a given neutral density.
+
+    Each station's salinity profile (sorted in neutral density) is linearly
+    interpolated to ``gamma``; stations whose bottles do not bracket ``gamma``
+    are skipped. The dataset value is the median over stations.
+
+    Returns
+    -------
+    float
+        Median interpolated salinity; NaN if no station brackets ``gamma``.
+    """
+    if not np.isfinite(gamma):
+        return np.nan
+    st = (df['Longitude'].round(2).astype(str) + '_' + df['Latitude'].round(2).astype(str)).values
+    values = []
+    for station in np.unique(st):
+        x = df[st == station][[gamma_col, salinity_col]].dropna().sort_values(gamma_col)
+        g, s = x[gamma_col].values, x[salinity_col].values
+        if len(g) >= 2 and g[0] <= gamma <= g[-1]:
+            values.append(np.interp(gamma, g, s))
+    return float(np.median(values)) if values else np.nan
+
+
 def create_l_depth():
     """
     Create a list of 45 depth levels for ocean depth discretization.
